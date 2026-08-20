@@ -15,8 +15,11 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware('auth.custom')->group(function() {
     Route::get('/', function () {
         return redirect()->route('tasks.index');
-
+    });
+    
     //these are protected as they can only be accessed when logged in
     Route::resource('tasks', TaskController::class);
+
+
     });
-});
+

@@ -4,14 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Helpers\PasswordHelper\hash_password;
-use App\Helpers\PasswordHelper\verify_password;
+use App\Helpers\PasswordHelper;
 
 
 class AuthController extends Controller
 {
     public function showRegister() {
-        return view('register'); //showing the reg page
+        return view('auth.register'); //showing the reg page
 
     }
 
@@ -22,17 +21,17 @@ class AuthController extends Controller
 
     ]); //first, entered details from view are sent inside a Request object to the controller, then validated
 
-    $validated['password']=hash_password($validated['password']); //password cant be stored as is, must be hashed using built in func
+    $validated['password']=PasswordHelper::hash_password($validated['password']); //password cant be stored as is, must be hashed using built in func
 
     User::create($validated); //add record to users table
 
-    return redirect()->route('login')->with('success',"sign in successful") //redirect to login view with success message
+    return redirect()->route('login')->with('success',"sign in successful"); //redirect to login view with success message
 
     }
 
 
     public function showLogin(){
-        return view('login'); //display login blade view
+        return view('auth.login'); //display login blade view
     }
 
     public function login(Request $request) {
@@ -41,13 +40,13 @@ class AuthController extends Controller
 
         $user = User::where('username', $creds['username'])->first(); //find by username, first instance, we are selecting and loading in this record
 
-        if (!$user || !verify_password($creds['password'], $user->password)) {
+        if (!$user || !PasswordHelper::verify_password($creds['password'], $user->password)) {
             return back()->withErrors([
-                'username'->'Invalid user or password'
+                'username'=>'Invalid user or password'
             ])->withInput();
         }
 
-        session(['user_id'=>$user->id,'username'=>$user-username]); //create a session
+        session(['user_id'=>$user->id,'username'=>$user->username]); //create a session
 
         return redirect()->route('tasks.index')->with('success', 'sign in successful');
 
