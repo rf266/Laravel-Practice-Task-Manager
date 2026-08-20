@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Helpers\PasswordHelper\hash_password;
+use App\Helpers\PasswordHelper\verify_password;
+
 
 class AuthController extends Controller
 {
