@@ -177,8 +177,25 @@
         @yield('extra-css')
     </style>
 </head>
+
+
 <body>
     <div class="container">
+
+        @if(session('user_id'))
+            <div style="text-align: right; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+                <span style="color: #666;">Logged in as: <strong>{{ session('username') }}</strong></span>
+                
+                <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                    @csrf
+                    <button type="submit" class="btn btn-danger" style="margin-left: 20px; padding: 8px 16px;">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        @endif
+
+
         @yield('content')
     </div>
 </body>

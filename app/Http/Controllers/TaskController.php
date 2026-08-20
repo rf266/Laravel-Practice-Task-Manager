@@ -10,7 +10,10 @@ class TaskController extends Controller
     // Show all tasks
     public function index()
     {
-        $tasks = Task::all();
+        $userid = session('user_id');
+
+
+        $tasks = Task::where('user_id',$userid)->get(); //creates a query equivalent to showing the tasks for this particular user
         return view('tasks.index', compact('tasks'));
     }
 
@@ -28,6 +31,8 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
         ]);
+        
+        $validated['user_id'] = session('user_id'); //gets the userid from session info for db storage
 
         // Create and save the task
         Task::create($validated);
