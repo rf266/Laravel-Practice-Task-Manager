@@ -21,7 +21,7 @@ class AuthController extends Controller
 
     ]); //first, entered details from view are sent inside a Request object to the controller, then validated
 
-    $validated['password']=PasswordHelper::hash_password($validated['password']); //password cant be stored as is, must be hashed using built in func
+    $validated['password']=PasswordHelper::hash_password($validated['password']); //password cant be stored as is, must be hashed using helper func
 
     User::create($validated); //add record to users table
 
@@ -56,7 +56,7 @@ class AuthController extends Controller
 
         session()->flush(); //end session
 
-        return redirect()->route('login')->with('sucess','logged out successfully');
+        return redirect()->route('login')->with('success','logged out successfully');
     }
 
 }
