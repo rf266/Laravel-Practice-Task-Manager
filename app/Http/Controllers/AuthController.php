@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
 use App\Helpers\PasswordHelper;
+use Closure;
+use App\Models\User;
+use App\Mail\VerificationEmail;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 
 class AuthController extends Controller
@@ -22,10 +26,18 @@ class AuthController extends Controller
     ]); //first, entered details from view are sent inside a Request object to the controller, then validated
 
     $validated['password']=PasswordHelper::hash_password($validated['password']); //password cant be stored as is, must be hashed using helper func
+    $validated['email_verification_token'] = Str::random(60);
 
     User::create($validated); //add record to users table
 
-    return redirect()->route('login')->with('success',"sign in successful"); //redirect to login view with success message
+    $verificationUrl = route('email.verify', [
+        'token'=>$user->email_verification_token,
+        'email'=>$user->email,
+    ]);
+
+    Mail::to($user->email)->send(new VerificationEmail($user, $verificationUrl));
+
+    return redirect()->route('login')->with('success',"Account created, please check your emails for the verification"); //redirect to login view with success message
 
     }
 
@@ -46,6 +58,10 @@ class AuthController extends Controller
             ])->withInput();
         }
 
+        if (!$user->is_verified){
+            return back()->withErrors(['username'=>'please verify your email before login'])->withInput();
+        }
+
         session(['user_id'=>$user->id,'username'=>$user->username]); //create a session
 
         return redirect()->route('tasks.index')->with('success', 'sign in successful');
@@ -59,4 +75,97 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success','logged out successfully');
     }
 
+    public function verifyEmail(Request $request) {
+        $user = User::where('email_verification_token', $request->token)->where('email', $request->email)->first();
+        if (!$user) {
+            return redirect()->route('login')->withErrors('invalid verification link');
+        }
+
+        if ($user->is_verified) {
+            return redirect()->route('login')->with('success', 'email already verified');
+        }
+
+        $user->update(
+            [
+                'is_verified'=>true,
+                'email_verified_at'=>now(),
+                'email_verification_token'=>null,
+            ]
+        );
+
+        Mail::to($user->email)->send(new WelcomeEmail($user));
+
+        return redirect()->route('login')->with('success', "email verified. you can login");
+
+    }
+
+    public function showForgotPassword() {
+        return view('auth.forgot-password');
+    
+    }
+
+
+    public function sendPasswordReset(Request $request) {
+        $request->validate(['email'=>'required|email|exists:users']);
+
+        $user = User::where('email',$request->email)->first();
+        $token = Str::random(60);
+
+        $user->update(['password_reset_token'=>$token, 'password_reset_expires_at'=>now()->addHour(),]);
+        $resetUrl = route('password.reset',['token'=>$token]);
+
+        Mail::to($user->email)->send(new PasswordResetEmail($user, $resetUrl));
+    
+        return redirect()->route(login)->with('success', 'check your email for password reset link');
+        }
+
+
+        public function showResetPassword($token) {
+
+            $user = User::where('password_reset_token', $token)->where('password_reset_expires_at','>',now())->first();
+
+
+            if (!$user) {
+                return redirect()->route('login')->withErrors('invalid or expired reset link');
+    
+
+            }
+
+            return view('auth.reset-password', ['token'=>$token]);
+
+        }
+
+        public function resetPassword(Request $request) {
+
+        $validated = $request->validate([
+            'token'=>'required|string',
+            'password'=>'required|string|min:6',
+            'password-confirmation'=>'required|same:password',
+        ]);
+
+        $user = User::where(
+            'password_reset_token',$validated[$token]
+        ->where('password_reset_expires_at','>',now()))->first();
+
+        if(!$user) {
+            return redirect()->route('login')->withErrors('invalid or expired password reset link');
+
+        }
+
+        $user->update([
+            'password'->hash_password($validated['password']),'password_reset_token'=>null,'password_reset_expires_at'=>null]);
+
+
+        
+
+        return redirect()->route('login')->with('success', 'password changed successfully. please login');
+
+        }
+
+
+
+
 }
+
+
+

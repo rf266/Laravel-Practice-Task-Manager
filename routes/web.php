@@ -23,3 +23,10 @@ Route::middleware('auth.custom')->group(function() {
 
     });
 
+Route::get('/email/verify/{token}', [AuthController::class, 'verifyEmail'])->name('email.verify');
+Route::post('/email/resend', [Authcontroller::class, 'resendVerificationEmail'])->name('email.resend');
+
+Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'sendPasswordReset'])->name('password.email');
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');

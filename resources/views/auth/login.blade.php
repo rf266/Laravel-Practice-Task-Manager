@@ -61,5 +61,10 @@
                 Create new account
             </a>
         </div>
+
+
+        <p style="text-align: center; margin-top: 20px;">
+            <a href="{{ route('password.request') }}">Forgot your password?</a>
+        </p>
     </form>
 @endsection
