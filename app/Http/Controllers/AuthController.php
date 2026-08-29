@@ -9,7 +9,9 @@ use App\Models\User;
 use App\Mail\VerificationEmail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
-
+use App\Jobs\SendVerificationEmail;
+use App\Jobs\SendPasswordResetEmail;
+use App\Jobs\SendWelcomeEmail;
 
 class AuthController extends Controller
 {
@@ -35,7 +37,7 @@ class AuthController extends Controller
         'email'=>$user->email,
     ]);
 
-    Mail::to($user->email)->send(new VerificationEmail($user, $verificationUrl));
+    SendVerificationEmail::dispatch($user, $verificationUrl);
 
     return redirect()->route('login')->with('success',"Account created, please check your emails for the verification"); //redirect to login view with success message
 
@@ -76,9 +78,9 @@ class AuthController extends Controller
     }
 
     public function verifyEmail(Request $request) {
-        $user = User::where('email_verification_token', $request->token)->where('email', $request->email)->first();
+        $user = User::where('email_verification_token', $request->token)->where('email', $request->email)->where('email_verification_expires_at','>',now())->first();
         if (!$user) {
-            return redirect()->route('login')->withErrors('invalid verification link');
+            return redirect()->route('login')->withErrors('invalid or expired verification link');
         }
 
         if ($user->is_verified) {
@@ -93,7 +95,7 @@ class AuthController extends Controller
             ]
         );
 
-        Mail::to($user->email)->send(new WelcomeEmail($user));
+        SendWelcomeEmail::dispatch($user);
 
         return redirect()->route('login')->with('success', "email verified. you can login");
 
@@ -114,13 +116,13 @@ class AuthController extends Controller
         $user->update(['password_reset_token'=>$token, 'password_reset_expires_at'=>now()->addHour(),]);
         $resetUrl = route('password.reset',['token'=>$token]);
 
-        Mail::to($user->email)->send(new PasswordResetEmail($user, $resetUrl));
+        SendPasswordResetEmail::dispatch($user, $resetUrl);
     
         return redirect()->route(login)->with('success', 'check your email for password reset link');
         }
 
 
-        public function showResetPassword($token) {
+    public function showResetPassword($token) {
 
             $user = User::where('password_reset_token', $token)->where('password_reset_expires_at','>',now())->first();
 
@@ -135,7 +137,7 @@ class AuthController extends Controller
 
         }
 
-        public function resetPassword(Request $request) {
+    public function resetPassword(Request $request) {
 
         $validated = $request->validate([
             'token'=>'required|string',
