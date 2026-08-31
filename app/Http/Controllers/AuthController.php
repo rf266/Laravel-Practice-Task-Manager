@@ -125,16 +125,17 @@ class AuthController extends Controller
 
     public function showResetPassword($token)
 {
-    $user = User::where('password_reset_token', $token)->first();
+   $user = User::where('password_reset_token', $token)
+        ->where('password_reset_expires_at', '>', now())
+        ->first();
 
-    dd([
-        'url_token' => $token,
-        'db_token' => $user?->password_reset_token,
-        'db_expiry' => $user?->password_reset_expires_at,
-        'now' => now(),
-        'is_expired' => $user
-            ? $user->password_reset_expires_at < now()
-            : null,
+    if (!$user) {
+        return redirect()->route('login')
+            ->withErrors('invalid or expired reset link');
+    }
+
+    return view('auth.reset-password', [
+        'token' => $token
     ]);
 }
 
