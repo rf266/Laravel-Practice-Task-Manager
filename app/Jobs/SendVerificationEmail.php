@@ -13,13 +13,19 @@ use Illuminate\Support\Facades\Mail;
 
 class SendVerificationEmail implements ShouldQueue
 {
-    use Queueable, Dispatchable, InteractsWithQueue, SerializesModel;
+    use Queueable, Dispatchable, InteractsWithQueue, SerializesModels;
 
     /**
      * Create a new job instance.
      */
-    public function __construct()
+
+    public User $user;
+    public string $verificationUrl;
+
+    public function __construct(User $user,string $verificationUrl)
     {
+        $this->user = $user;
+        $this->verificationUrl = $verificationUrl;
     }
 
     /**
@@ -33,7 +39,7 @@ class SendVerificationEmail implements ShouldQueue
     }
 
 
-    public function faliure(\Throwable $exception): void {
+    public function failed(\Throwable $exception): void {
         \Log::error('verification email failed '. $exception->getMessage());
     }
 }

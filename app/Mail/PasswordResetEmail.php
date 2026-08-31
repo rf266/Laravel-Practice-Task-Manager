@@ -9,17 +9,18 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use App\Models\User;
 
 class PasswordResetEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct()
+    public User $user; 
+    public string $resetUrl;
+    public function __construct( User $user,  string $resetUrl)
     {
-        //
+        $this->user=$user;
+        $this->resetUrl = $resetUrl;
     }
 
     /**
@@ -39,6 +40,8 @@ class PasswordResetEmail extends Mailable
     {
         return new Content(
             view: 'emails.password-reset',
+            with: [
+            'user' => $this->user,]
         );
     }
 

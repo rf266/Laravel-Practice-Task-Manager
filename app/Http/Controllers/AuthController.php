@@ -29,12 +29,12 @@ class AuthController extends Controller
 
     $validated['password']=PasswordHelper::hash_password($validated['password']); //password cant be stored as is, must be hashed using helper func
     $validated['email_verification_token'] = Str::random(60);
+    $validated['email_verification_expires_at'] = now()->addDay();
 
-    User::create($validated); //add record to users table
+    $user = User::create($validated); //add record to users table
 
     $verificationUrl = route('email.verify', [
         'token'=>$user->email_verification_token,
-        'email'=>$user->email,
     ]);
 
     SendVerificationEmail::dispatch($user, $verificationUrl);
@@ -64,6 +64,7 @@ class AuthController extends Controller
             return back()->withErrors(['username'=>'please verify your email before login'])->withInput();
         }
 
+        $request->session()->regenerate();
         session(['user_id'=>$user->id,'username'=>$user->username]); //create a session
 
         return redirect()->route('tasks.index')->with('success', 'sign in successful');
@@ -78,7 +79,7 @@ class AuthController extends Controller
     }
 
     public function verifyEmail(Request $request) {
-        $user = User::where('email_verification_token', $request->token)->where('email', $request->email)->where('email_verification_expires_at','>',now())->first();
+        $user = User::where('email_verification_token', $request->token)->where('email_verification_expires_at','>',now())->first();
         if (!$user) {
             return redirect()->route('login')->withErrors('invalid or expired verification link');
         }
@@ -118,36 +119,36 @@ class AuthController extends Controller
 
         SendPasswordResetEmail::dispatch($user, $resetUrl);
     
-        return redirect()->route(login)->with('success', 'check your email for password reset link');
+        return redirect()->route('login')->with('success', 'check your email for password reset link');
         }
 
 
-    public function showResetPassword($token) {
+    public function showResetPassword($token)
+{
+    $user = User::where('password_reset_token', $token)->first();
 
-            $user = User::where('password_reset_token', $token)->where('password_reset_expires_at','>',now())->first();
-
-
-            if (!$user) {
-                return redirect()->route('login')->withErrors('invalid or expired reset link');
-    
-
-            }
-
-            return view('auth.reset-password', ['token'=>$token]);
-
-        }
+    dd([
+        'url_token' => $token,
+        'db_token' => $user?->password_reset_token,
+        'db_expiry' => $user?->password_reset_expires_at,
+        'now' => now(),
+        'is_expired' => $user
+            ? $user->password_reset_expires_at < now()
+            : null,
+    ]);
+}
 
     public function resetPassword(Request $request) {
 
         $validated = $request->validate([
             'token'=>'required|string',
             'password'=>'required|string|min:6',
-            'password-confirmation'=>'required|same:password',
+            'password_confirmation'=>'required|same:password',
         ]);
 
         $user = User::where(
-            'password_reset_token',$validated[$token]
-        ->where('password_reset_expires_at','>',now()))->first();
+            'password_reset_token',$validated['token'])
+        ->where('password_reset_expires_at','>',now())->first();
 
         if(!$user) {
             return redirect()->route('login')->withErrors('invalid or expired password reset link');
@@ -155,7 +156,7 @@ class AuthController extends Controller
         }
 
         $user->update([
-            'password'->hash_password($validated['password']),'password_reset_token'=>null,'password_reset_expires_at'=>null]);
+            'password'=>PasswordHelper::hash_password($validated['password']),'password_reset_token'=>null,'password_reset_expires_at'=>null]);
 
 
         

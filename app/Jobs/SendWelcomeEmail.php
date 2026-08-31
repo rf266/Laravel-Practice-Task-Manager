@@ -14,14 +14,16 @@ use Illuminate\Support\Facades\Mail;
 
 class SendWelcomeEmail implements ShouldQueue
 {
-    use Queueable, Dispatchable, InteractsWithQueue, SerializesModel;
+    use Queueable, Dispatchable, InteractsWithQueue, SerializesModels;
+
+    public User $user;
 
 
-    public function __construct()
+    public function __construct(User $user)
     {
-
+        $this->user = $user;
+        
     }
-
 
     public function handle(): void
     {

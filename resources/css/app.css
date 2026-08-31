@@ -7,3 +7,41 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    display: block;
+    width: 100%;
+    height: 48px;
+    padding: 12px 14px;
+    margin: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background-color: #fff;
+    color: #1f2937;
+    font-size: 1rem;
+    line-height: 1.4;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="password"] {
+    background-color: #fff;
+    color: #1f2937;
+    -webkit-text-fill-color: #1f2937;
+    -webkit-box-shadow: 0 0 0 1000px #fff inset;
+    box-shadow: 0 0 0 1000px #fff inset;
+}
+
+input:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}

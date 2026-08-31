@@ -9,14 +9,16 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-
+use App\Models\User;
 class VerificationEmail extends Mailable
 {
     use Queueable, SerializesModels;
-
-    public function __construct(public User $user, public string $verificationUrl)
+    public User $user; 
+    public string $verificationUrl;
+    public function __construct( User $user,  string $verificationUrl)
     {
-        
+        $this->user=$user;
+        $this->verificationUrl = $verificationUrl;
     }
 
     /**
@@ -36,6 +38,7 @@ class VerificationEmail extends Mailable
     {
         return new Content(
             view: 'emails.verification',
+            with: ['user'=> $this->user,'verificationUrl'=>$this->verificationUrl,],
         );
     }
 
