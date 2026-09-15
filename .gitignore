@@ -8,6 +8,10 @@
 /.codex
 /.cursor/
 /.idea
+storage/app/avatars/*
+storage/app/documents/*
+!storage/app/.gitkeep
+public storage
 /.nova
 /.phpunit.cache
 /.vscode
