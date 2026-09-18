@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Helpers\DocumentHelper;
+use App\Models\Document;
+use App\Models\User;
 
 class DocumentUploadController extends Controller
 {
     public function index() {
-        $user = auth()->user();
+        $user = User::findOrFail(session('user_id'));
         $documents = $user->documents()->latest()->paginate(10);
 
         return view('documents.index', [
@@ -18,22 +21,22 @@ class DocumentUploadController extends Controller
     }
 
     public function create() {
-        $user = auth()->user();
+        $user = User::findOrFail(session('user_id'));
 
-        if (!$user->canUploadDocuemnt()) {
+        if (!$user->canUploadDocument()) {
             return redirect()->route('documents.index')->with('error', 'you have reached the maximum of 5 documents');
         }
 
-        return view('documents.upload',['documentCount'=>$user->documentCount()];)
+        return view('documents.upload',['documentCount'=>$user->documentCount()]);
     }
 
-    public functon store(Request $request) {
-        $user = auth()->user();
+    public function store(Request $request) {
+        $user = User::findOrFail(session('user_id'));
 
         if (!$user->canUploadDocument()) {
             return response()->json([
                 'success'=>false, 
-                'error'=>"you have reached the maximum of 5 documents";
+                'error'=>"you have reached the maximum of 5 documents"
             ], 422);
         }
 
@@ -46,16 +49,26 @@ class DocumentUploadController extends Controller
 
         $file = $request->file('document');
 
-        $result = FileHelper::uploadDocument($file, $user->id);
+        $result = DocumentHelper::uploadDocument($file, $user->id);
 
         if(!$result['success']) {
             return response()->json([
-                'success'=>false, 
-                "errors"=>$result['errors']
+                'success'=> false, 
+                "errors" => $result['errors']
             ], 422);
         }
 
         $document = Document::create([
+            'user_id' => $user->id, 
+            'original_filename' => $file->getClientOriginalName(),
+            'stored_filename' => $result['filename'], 
+            'file_type' => strtolower($file->getClientOriginalExtension()),
+            'file_size' => $file->getSize(),
+            'file_path' => 'documents/' . $user->id . '/' . $result['filename'],
+        ]);
+        
+
+        return response()->json([
             'success'=>true, 
             'message'=>'document uploaded successfully',
             'document'=>[
@@ -70,34 +83,34 @@ class DocumentUploadController extends Controller
 
     public function download(Document $document) {
 
-        if(auth()->user()->id !==$document->user_id) {
+        if(session('user_id') !== $document->user_id) {
             abort(403, 'unauthorised');
         }
 
-        $filePath = storage_path('app/'.$document->file_path);
+        $filePath = storage_path('app/public/'.$document->file_path);
 
         if (!file_exists($filePath)){
             abort(404, 'file not found ');
         }
 
-        $mimetype = FileHelper::getDocumentMimeType($document->file_type);
+        $mimetype = DocumentHelper::getDocumentMimeType($document->file_type);
 
         return response()->download(
             $filePath, 
             $document->original_filename, 
-            ["Content-Type" =>$mimeType]
+            ["Content-Type" =>$mimetype]
         );
     }
 
     public function destroy(Document $document) {
         
-        if (auth()->user()->id !== $document->user_id) {
+        if (session('user_id') !== $document->user_id) {
             return response()->json([
                 'success'=>false, 'error'=>"Unauthorised"
             ],403);
         }
 
-        FileHelper::deleteDocument($document->stored_filename, auth()->user()-id);
+        DocumentHelper::deleteDocument($document->stored_filename, session('user_id'));
         $document->delete();
         return response()->json([
             'success'=>true, 'message'=>'document deleted'

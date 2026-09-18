@@ -92,13 +92,13 @@ fileInput.addEventListener('change', uploadFile);
 function uploadFile() {
     const file = fileInput.files[0];
     if (!file) return;
-    
+
     const formData = new FormData();
     formData.append('avatar', file);
-    
+
     uploadProgress.classList.remove('hidden');
     uploadResult.classList.add('hidden');
-    
+
     fetch('{{ route("avatars.store", $user->id) }}', {
         method: 'POST',
         headers: {
@@ -106,31 +106,36 @@ function uploadFile() {
         },
         body: formData
     })
-    .then(res => res.json())
-    .then(data => {
-        uploadProgress.classList.add('hidden');
-        
-        if (data.success) {
-            uploadResult.innerHTML = `
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-                    ✓ Avatar uploaded successfully!
-                    <p class="mt-2">
-                        <a href="{{ route('profile.show', $user->id) }}" class="text-green-800 underline">
-                            View profile →
-                        </a>
-                    </p>
-                </div>
-            `;
-        } else {
-            const errors = data.errors ? data.errors.join('<br>') : data.error;
-            uploadResult.innerHTML = `
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    ✗ Upload failed<br>${errors}
-                </div>
-            `;
+    .then(async (res) => {
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok || !data || !data.success) {
+            throw new Error(
+                data && data.errors ? data.errors.join('<br>') : (data && data.error ? data.error : 'Upload failed')
+            );
         }
+
+        return data;
+    })
+    .then((data) => {
+        uploadResult.innerHTML = `
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                ✓ Avatar uploaded successfully!
+            </div>
+        `;
         uploadResult.classList.remove('hidden');
         fileInput.value = '';
+    })
+    .catch((error) => {
+        uploadResult.innerHTML = `
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                ✗ Upload failed<br>${error.message}
+            </div>
+        `;
+        uploadResult.classList.remove('hidden');
+    })
+    .finally(() => {
+        uploadProgress.classList.add('hidden');
     });
 }
 </script>

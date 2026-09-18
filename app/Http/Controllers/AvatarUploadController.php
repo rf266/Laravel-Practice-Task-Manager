@@ -4,20 +4,20 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Helpers\FileHelper;
+use App\Helpers\DocumentHelper;
 
 
 class AvatarUploadController extends Controller
 {
     public function create(User $user) {
-        if (auth()->user()->id !== $user->id) {
+        if (session('user_id') !== $user->id) {
             abort(403, "unauthorised");
         }
         return view('avatars.upload', ['user'=>$user]);
     }
 
     public function store(Request $request, User $user) {
-        if (auth()->user()->id !== $user->id) {
+        if (session('user_id') !== $user->id) {
             return response()->json([
                 'success'=>false, 'error'=>'unauthorised'],403);
             
@@ -25,13 +25,13 @@ class AvatarUploadController extends Controller
 
         if (!$request->hasFile('avatar')) {
             return response()->json([
-                'succcess' =>false, 'error'=>"no file provided"], 400);
+                'success' =>false, 'error'=>"no file provided"], 400);
      
         }
 
         $file = $request->file('avatar');
 
-        $result = FileHelper::uploadAvatar($file, $user->id);
+        $result = DocumentHelper::uploadAvatar($file, $user->id);
 
         if (!$result['success']) {
             return response()->json([
@@ -41,7 +41,7 @@ class AvatarUploadController extends Controller
         }
 
         if ($user->avatar_path) {
-            FileHelper::deleteAvatar($user->avatar_path);
+            DocumentHelper::deleteAvatar($user->avatar_path);
         }
 
         $user->update(['avatar_path'=>$result['filename']]);
@@ -54,12 +54,12 @@ class AvatarUploadController extends Controller
 
     public function destroy(User $user) {
 
-        if (auth()->user()->id  !== $user->id){
+        if (session('user_id')  !== $user->id){
             abort(403, "unauthorised");
         }
 
         if ($user->avatar_path) {
-            FileHelper::deleteAvatar($user->avatar_path);
+            DocumentHelper::deleteAvatar($user->avatar_path);
             $user->update(['avatar_path'=>null]);
         }
 

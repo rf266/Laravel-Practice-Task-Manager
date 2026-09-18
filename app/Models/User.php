@@ -41,7 +41,7 @@ class User extends Model
     }
 
     public function canUploadDocument(){
-        return $this->documentCount() <=5;
+        return $this->documentCount() <5;
     }
 
 

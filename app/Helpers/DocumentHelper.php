@@ -1,11 +1,10 @@
 <?php
 namespace App\Helpers;
+use Illuminate\Support\Facades\Storage;
 
-use Illuminate\Http\UploadedFile;
-
-class FileHelper {
+class DocumentHelper {
     public static function validateAvatar($file) 
-{
+    {
     $errors = [];
 
     if (!$file) {
@@ -14,18 +13,18 @@ class FileHelper {
     }
 
     $allowedMimes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    if(!in_array($file->get_Mime_Type(), $allowedMimes)) {
+    if(!in_array($file->getMimeType(), $allowedMimes)) {
         $errors = ["avatar must be jpeg, gif, png or webp"];
 
     }
 
-    max_size = 2*1024*1024;
-    if ($file->getSize()>max_size) {
+    $max_size = 2*1024*1024;
+    if ($file->getSize()>$max_size) {
         $errors[] = "max avatar size exceeded, must be less than 2MB";
     }
 
     $imageInfo = @getimagesize($file->getRealPath());
-    if (!imageInfo) {
+    if (!$imageInfo) {
         $errors[] = "could not read image properties";
     }
     else {
@@ -41,10 +40,10 @@ class FileHelper {
 
         }
 
-        return ["valid"=>empty($errors), 
+    }
+    return ["valid"=>empty($errors), 
         "errors"=>$errors];
     }
-
     public static function uploadAvatar($file, $userID) {
         try {
             $validation = self::validateAvatar($file);
@@ -52,19 +51,19 @@ class FileHelper {
                 return ["success"=>false, "errors"=> $validation["errors"]];
             }
 
-            $extension = $file->getClientOriginalExtension();
-            $filename = "avatar_". $userID. "_". time()."."$extension;
-            $path = $file->storeAs("avatars", $filename, "local");
+            $extension = strtolower($file->getClientOriginalExtension());
+            $filename = "avatar_". $userID. "_". time().".".$extension;
+            Storage::disk('public')->putFileAs('avatars', $file, $filename);
 
             return ["success"=>true, "filename"=>$filename];
         } catch (\Exception $e) {
-            return ["success"=?false, "errors"=> [$e->getMessage()]];
+            return ["success"=>false, "errors"=> [$e->getMessage()]];
         }
-        }
+    }
 
     public static function deleteAvatar($avatarPath) {
             try {
-                $fullPath = storage_path('app/avatars/'.$avatarPath);
+                $fullPath = storage_path('app/public/avatars/'.$avatarPath);
 
                 if (file_exists($fullPath)) {
                     unlink($fullPath);
@@ -74,7 +73,7 @@ class FileHelper {
             } catch (\Exception $e) {
                 return false;
             }
-            }
+            
         }
 
     public static function validateDocument($file) {
@@ -86,7 +85,7 @@ class FileHelper {
 
             $allowedMimes = [
                 "application/pdf", 
-                "application/vnd.opemxmlformats-officedocument.wordprocessingml.document", 
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
                 "text/csv", 
                 "application/csv", 
                 "text/plain"
@@ -104,10 +103,10 @@ class FileHelper {
             if (!in_array($extension, $allowedExtensions)) {
                 $errors[] = 'File extensions must be .pdf, .docx or .csv';
             }
-             max_size = 5*1024*1024;
-            if ($file->getSize()>max_size) {
+             $max_size = 5*1024*1024;
+            if ($file->getSize()>$max_size) {
             $errors[] = "max file size exceeded, must be less than 10MB";
-
+            }
             if ($file->getSize()<1024) {
                 $errors[] = "file must be at least 1KB";
             }
@@ -118,7 +117,7 @@ class FileHelper {
             
         }
 
-        public static function uploadDocument($file, $userID)
+    public static function uploadDocument($file, $userID)
         {
             try {
                 $validation = self::validateDocument($file);
@@ -127,11 +126,10 @@ class FileHelper {
                 }
 
                 $originalName = $file->getClientOriginalName();
-                $extnesion = $file->getClientOriginalExtension();
+                $extension = $file->getClientOriginalExtension();
                 $hashedName = "doc_".$userID."_".time()."_".hash("md5",$originalName).".".$extension;
 
-                $path = $file->storeAs('documents/'.$userID, $hashedName, "local");
-
+                Storage::disk('public')->putFileAs('documents/' . $userID, $file, $hashedName); 
                 return [
                     "success"=>true,
                     "filename"=>$hashedName,
@@ -146,13 +144,13 @@ class FileHelper {
 
         public static function deleteDocument($documentPath, $userId) {
             try {
-                $fullPath = storage_path('app/documents/'.$userId."/".$documentPath);
+                $fullPath = storage_path('app/public/documents/'.$userId."/".$documentPath);
 
                 if(file_exists($fullPath)) {
                     unlink($fullPath);
                     return true;
                 }
-                return false
+                return false;
 
             } catch (\Exception $e) {
                 return false;
@@ -172,6 +170,7 @@ class FileHelper {
 
 
     }
+
 
 
 

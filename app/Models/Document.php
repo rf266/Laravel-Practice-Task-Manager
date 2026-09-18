@@ -23,14 +23,18 @@ class Document extends Model
         return $this->belongsTo(User::class);
     }
 
+    
     public function getFileSizeFormattedAttribute(){
-        $bytes = $this->file_size;
-        $units = ['B', "KB", "MB", "GB"];
-        $pow = floor(($bytes?  log($bytes :0)/log(1024)));
-        $pow = min($pow, count($units)-1);
-        $bytes /=(1<<(10*$pow));
-        return round($bytes,2)." ". $units[$pow];
-    }
+    $bytes = (int) $this->file_size;
+
+    $units = ['B', 'KB', 'MB', 'GB'];
+    $power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
+    $power = min($power, count($units) - 1);
+
+    $value = $bytes / (1024 ** $power);
+
+    return round($value, 2) . ' ' . $units[$power];
+}
 
     public function getDownloadUrlAttribute(){
         return route('documents.download',$this->id);

@@ -8,8 +8,18 @@
         <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-32"></div>
         
         <!-- Profile Content -->
-        <div class="px-6 pb-6">
-            
+       <div class="px-6 pb-6">
+            <div class="mb-4 flex gap-2">
+                <a href="{{ route('tasks.index') }}"
+                    class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded">
+                     ← My Tasks
+        </a>
+
+        <a href="{{ route('profile.show', session('user_id')) }}"
+           class="inline-block bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded">
+            My Profile
+        </a>
+    </div>            
             <!-- Avatar Section -->
             <div class="flex items-end -mt-16 mb-4">
                 <div class="relative">
@@ -18,7 +28,7 @@
                          class="w-32 h-32 rounded-full border-4 border-white object-cover bg-gray-200">
                     
                     <!-- Edit button (only for own profile) -->
-                    @if(auth()->check() && auth()->user()->id === $user->id)
+                    @if(session('user_id')  && session('user_id') === $user->id)
                         <a href="{{ route('avatars.create', $user->id) }}" 
                            class="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-lg">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +50,7 @@
             </div>
             
             <!-- Edit Profile Button -->
-            @if(auth()->check() && auth()->user()->id === $user->id)
+            @if(session('user_id') && session('user_id') === $user->id)
                 <a href="{{ route('profile.edit', $user->id) }}" 
                    class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mb-4">
                     ✏️ Edit Profile

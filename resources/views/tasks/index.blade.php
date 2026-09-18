@@ -102,6 +102,8 @@
         </div>
     @endif
 
+    <a href="{{ route('profile.show', session('user_id')) }}">My Profile</a>
+
     <div style="margin-bottom: 30px;">
         <a href="{{ route('tasks.create') }}" class="btn btn-primary" style="width: 100%; display: block; text-align: center; text-decoration: none;">
             ➕ Create New Task

@@ -9,6 +9,10 @@ use App\Models\User;
 class UserProfileController extends Controller
 {
     public function show(User $user) {
+        if((int) session('user_id')!== (int) $user->id){
+            abort(403, 'unauthorized');
+        }
+
         $tasksCount = $user->tasks()->count();
         $documentsCount = $user->documents()->count();
 
@@ -22,7 +26,7 @@ class UserProfileController extends Controller
 
     public function edit(User $user)
     {
-        if (auth()->user()->id !== $user->id){
+        if (session('user_id') !== $user->id){
             abort(403, 'Unauthorized');
         }
 
@@ -30,7 +34,7 @@ class UserProfileController extends Controller
     }
 
     public function update(Request $request, User $user) {
-        if(auth()->user()->id !== $user->id) {
+        if(session('user_id') !== $user->id) {
             abort(403, "Unauthorized");
         }
 

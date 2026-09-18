@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') - Task Manager</title>
-    <style>
+        <style>
         * {
             margin: 0;
             padding: 0;
@@ -183,17 +184,19 @@
     <div class="container">
 
         @if(session('user_id'))
-            <div style="text-align: right; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
-                <span style="color: #666;">Logged in as: <strong>{{ session('username') }}</strong></span>
-                
-                <form action="{{ route('logout') }}" method="POST" style="display: inline;">
-                    @csrf
-                    <button type="submit" class="btn btn-danger" style="margin-left: 20px; padding: 8px 16px;">
-                        Logout
-                    </button>
-                </form>
-            </div>
-        @endif
+    <div style="text-align: right; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+        <span style="color: #666;">Logged in as: <strong>{{ session('username') }}</strong></span>
+        <a href="{{ route('tasks.index') }}">My Tasks</a>
+        <a href="{{ route('profile.show', session('user_id')) }}">My Profile</a>
+        <a href="{{ route('documents.index') }}">My Documents</a>
+        <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+            @csrf
+            <button type="submit" class="btn btn-danger" style="margin-left: 20px; padding: 8px 16px;">
+                Logout
+            </button>
+        </form>
+    </div>
+@endif
 
 
         @yield('content')
