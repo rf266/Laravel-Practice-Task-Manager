@@ -96,8 +96,7 @@ class AuthController extends Controller
             ]
         );
 
-        SendWelcomeEmail::dispatch($user);
-
+    SendWelcomeEmail::dispatch($user)->delay(now()->addSeconds(2)); 
         return redirect()->route('login')->with('success', "email verified. you can login");
 
     }
