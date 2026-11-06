@@ -7,4 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model
 {
     protected $fillable = ['title', 'description', 'is_completed', 'user_id'];
+
+
+    protected function casts() : array {
+        return [
+            'title'=>'encrypted',
+            'description' => 'encrypted',
+        ];
+    }
+
+
+
 }
+
+
