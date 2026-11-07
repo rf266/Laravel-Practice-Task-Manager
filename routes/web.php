@@ -15,7 +15,6 @@ Route::post('/register', [Authcontroller::class, 'register'])->middleware('throt
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth.custom', 'throttle:tasks'])->group(function() {
     Route::get('/', function () {
@@ -37,7 +36,7 @@ Route::middleware(['auth.custom', 'throttle:tasks'])->group(function() {
 
     Route::get('/document', [DocumentUploadController::class, 'index'])->name('documents.index');
     Route::get('/documents/create', [DocumentUploadController::class, 'create'])->name('documents.create');
-    Route::post('/documents', [DocumentUploadController::class, 'store'])->middleware('throttle:uploads')->name('avatars.store');
+    Route::post('/documents', [DocumentUploadController::class, 'store'])->middleware('throttle:uploads')->name('documents.store');
     Route::get('/documents/{document}/download', [DocumentUploadController::class, 'download'])->name('documents.download');
     Route::delete('/documents/{document}', [DocumentUploadController::class, 'destroy'])->name('documents.destroy');
 
