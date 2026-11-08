@@ -42,8 +42,8 @@ Route::middleware(['auth.custom', 'throttle:tasks'])->group(function() {
 
     });
 
-Route::get('/email/verify/{token}', [AuthController::class, 'verifyEmail'])->name('email.verify')->middleware('throttle:email');
-Route::post('/email/resend', [Authcontroller::class, 'resendVerificationEmail'])->name('email.resend')->middleware('throttle:email');
+Route::get('/email/verify/{token}', [AuthController::class, 'verifyEmail'])->name('email.verify');
+Route::post('/email/resend', [Authcontroller::class, 'resendVerificationEmail'])->name('email.resend');
 
 Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
 Route::post('/forgot-password', [AuthController::class, 'sendPasswordReset'])->middleware('throttle:password-reset')->name('password.email');

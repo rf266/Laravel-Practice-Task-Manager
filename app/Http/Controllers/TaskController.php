@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class TaskController extends Controller
 {
@@ -14,7 +16,16 @@ class TaskController extends Controller
 
 
         $tasks = Task::where('user_id',$userid)->get(); //creates a query equivalent to showing the tasks for this particular user
-        return view('tasks.index', compact('tasks'));
+
+        $stats = Cache::remember('user:' . $userid . ':task-stats', 600, function () use ($userid) {
+            return [
+                'total'=> Task::where('user_id', $userid)->count(), 
+                'completed' => Task::where('user_id', $userid)->where('is_completed', true)->count()
+            ];
+        } );
+
+       
+        return view('tasks.index', compact('tasks','stats'));
     }
 
     // Show form to create a new task

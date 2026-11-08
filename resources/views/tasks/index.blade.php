@@ -103,6 +103,7 @@
     @endif
 
     <a href="{{ route('profile.show', session('user_id')) }}">My Profile</a>
+    <p>Total tasks: {{ $stats['total'] }} | Completed: {{ $stats['completed'] }}</p>
 
     <div style="margin-bottom: 30px;">
         <a href="{{ route('tasks.create') }}" class="btn btn-primary" style="width: 100%; display: block; text-align: center; text-decoration: none;">
