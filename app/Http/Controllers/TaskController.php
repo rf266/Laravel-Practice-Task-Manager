@@ -13,7 +13,7 @@ class TaskController extends Controller
     // Show all tasks
     public function index()
     {
-        $userid = session('user_id');
+        $user_id = session('user_id');
 
 
         $tasks = Task::where('user_id',$user_id)->get(); //creates a query equivalent to showing the tasks for this particular user
