@@ -6,6 +6,7 @@ use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use App\Events\TaskCreated;
 
 class TaskController extends Controller
 {
@@ -15,12 +16,12 @@ class TaskController extends Controller
         $userid = session('user_id');
 
 
-        $tasks = Task::where('user_id',$userid)->get(); //creates a query equivalent to showing the tasks for this particular user
+        $tasks = Task::where('user_id',$user_id)->get(); //creates a query equivalent to showing the tasks for this particular user
 
-        $stats = Cache::remember('user:' . $userid . ':task-stats', 600, function () use ($userid) {
+        $stats = Cache::remember('user:' . $user_id . ':task-stats', 600, function () use ($userid) {
             return [
-                'total'=> Task::where('user_id', $userid)->count(), 
-                'completed' => Task::where('user_id', $userid)->where('is_completed', true)->count()
+                'total'=> Task::where('user_id', $user_id)->count(), 
+                'completed' => Task::where('user_id', $user_id)->where('is_completed', true)->count()
             ];
         } );
 
@@ -46,7 +47,8 @@ class TaskController extends Controller
         $validated['user_id'] = session('user_id'); //gets the userid from session info for db storage
 
         // Create and save the task
-        Task::create($validated);
+        $task = Task::create($validated);
+        TaskCreated::dispatch($task);
 
         return redirect()->route('tasks.index')->with('success', 'Task created successfully!');
     }
