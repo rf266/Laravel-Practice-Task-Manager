@@ -18,7 +18,7 @@ class TaskController extends Controller
 
         $tasks = Task::where('user_id',$user_id)->get(); //creates a query equivalent to showing the tasks for this particular user
 
-        $stats = Cache::remember('user:' . $user_id . ':task-stats', 600, function () use ($userid) {
+        $stats = Cache::remember('user:' . $user_id . ':task-stats', 600, function () use ($user_id) {
             return [
                 'total'=> Task::where('user_id', $user_id)->count(), 
                 'completed' => Task::where('user_id', $user_id)->where('is_completed', true)->count()
