@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use App\Http\Middleware\SecurityHeaders;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
     $middleware->alias([
         'auth.custom' => \App\Http\Middleware\AuthCustom::class,
     ]);
+    $middleware->web(append: [SecurityHeaders::class]);
+
 })
     ->withProviders([
         App\Providers\AuthServiceProvider::class,
