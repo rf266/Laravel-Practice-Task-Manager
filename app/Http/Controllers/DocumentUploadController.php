@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Helpers\DocumentHelper;
 use App\Models\Document;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentUploadController extends Controller
 {
@@ -87,11 +88,11 @@ class DocumentUploadController extends Controller
             abort(403, 'unauthorised');
         }
 
-        $filePath = storage_path('app/public/'.$document->file_path);
+        $filePath = Storage::disk('local')->path($document->file_path);
 
-        if (!file_exists($filePath)){
-            abort(404, 'file not found ');
-        }
+        if (!Storage::disk('local')->exists($document->file_path)) {
+            abort(404, 'File not found');
+}
 
         $mimetype = DocumentHelper::getDocumentMimeType($document->file_type);
 
@@ -115,5 +116,20 @@ class DocumentUploadController extends Controller
         return response()->json([
             'success'=>true, 'message'=>'document deleted'
         ]);
+    }
+
+    public function view(Document $document) {
+        abort_if($document->user_id !== session('user_id'),403);
+        abort_unless(Storage::disk('local')->exists($document->path),404);
+
+        $type = Storage::disk('local')->mimeType($document->path);
+
+        abort_unless(in_array($type, ["application/pdf", 
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
+                "text/csv", 
+                "application/csv", 
+                "text/plain"], true), 415);
+
+        return Storage::disk('local')->response($document->path, $document->original_name);
     }
 }

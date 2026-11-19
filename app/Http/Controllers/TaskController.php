@@ -29,6 +29,37 @@ class TaskController extends Controller
         return view('tasks.index', compact('tasks','stats'));
     }
 
+    public function export() {
+        $user_id = session('user_id');
+        $filename = 'tasks-' .now()->format('Y-m-d') . '.csv';
+
+        return response()->stream_Download(function() use ($user_id) {
+            $out = fopen('php://output', 'w');
+
+            fputcsv($out, ['ID', 'Title', 'Description', 'Created']);
+
+            Task::where('user_id', $userId)->chunkById(1, function ($tasks) use ($out) 
+            {
+                foreach ($tasks as $task ) {
+                    fputcsv($out, [
+                    $task->id,
+                    $this->csvSafe($task->title),
+                    $this->csvSafe($task->description),
+                    $task->created_at,]);
+            }
+        });
+ 
+        fclose($out);
+    }, $filename, ['Content-Type' => 'text/csv']);
+}
+
+
+public function csvSafe(?string $value): string {
+    $value  = $value ?? '';
+
+    return preg_match('/^[=+\\-@]/', $value) ? '\'' . $value : $value;
+}
+
     // Show form to create a new task
     public function create()
     {

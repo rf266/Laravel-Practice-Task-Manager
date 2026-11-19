@@ -95,7 +95,7 @@
 
 @section('content')
     <h1>📋 My Tasks</h1>
-
+    <a href="{{ route('tasks.export') }}">Export my tasks (CSV)</a>
     @if(session('success'))
         <div class="alert alert-success">
             {{ session('success') }}

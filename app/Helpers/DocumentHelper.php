@@ -129,7 +129,7 @@ class DocumentHelper {
                 $extension = $file->getClientOriginalExtension();
                 $hashedName = "doc_".$userID."_".time()."_".hash("md5",$originalName).".".$extension;
 
-                Storage::disk('public')->putFileAs('documents/' . $userID, $file, $hashedName); 
+                Storage::disk('local')->putFileAs('documents/' . $userID, $file, $hashedName); 
                 return [
                     "success"=>true,
                     "filename"=>$hashedName,
@@ -143,18 +143,8 @@ class DocumentHelper {
         }
 
         public static function deleteDocument($documentPath, $userId) {
-            try {
-                $fullPath = storage_path('app/public/documents/'.$userId."/".$documentPath);
-
-                if(file_exists($fullPath)) {
-                    unlink($fullPath);
-                    return true;
-                }
-                return false;
-
-            } catch (\Exception $e) {
-                return false;
-            }
+            return Storage::disk('local')->delete('documents/' . $userId . '/' . $documentPath
+    );
         }
 
         public static function getDocumentMimeType($extension)

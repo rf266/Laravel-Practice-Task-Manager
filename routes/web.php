@@ -24,6 +24,7 @@ Route::middleware(['auth.custom', 'throttle:tasks'])->group(function() {
 
     
     //these are protected as they can only be accessed when logged in
+    Route::get('/tasks/export', [TaskController::class, 'export'])->middleware('throttle:downlods')->name('tasks.export');
     Route::resource('tasks', TaskController::class);
 
     Route::get('/profile/{user}',[UserProfileController::class, 'show'])->name('profile.show');
@@ -37,10 +38,10 @@ Route::middleware(['auth.custom', 'throttle:tasks'])->group(function() {
     Route::get('/document', [DocumentUploadController::class, 'index'])->name('documents.index');
     Route::get('/documents/create', [DocumentUploadController::class, 'create'])->name('documents.create');
     Route::post('/documents', [DocumentUploadController::class, 'store'])->middleware('throttle:uploads')->name('documents.store');
-    Route::get('/documents/{document}/download', [DocumentUploadController::class, 'download'])->name('documents.download');
+    Route::get('/documents/{document}/download', [DocumentUploadController::class, 'download'])->middleware('throttle:downloads')->name('documents.download');
     Route::delete('/documents/{document}', [DocumentUploadController::class, 'destroy'])->name('documents.destroy');
 
-    });
+    Route::get('/documents/{document}/view', [DocumentUploadController::class, 'view'])->middleware('throttle:downloads')->name('documents.view');});
 
 Route::get('/email/verify/{token}', [AuthController::class, 'verifyEmail'])->name('email.verify');
 Route::post('/email/resend', [Authcontroller::class, 'resendVerificationEmail'])->name('email.resend');

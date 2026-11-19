@@ -28,7 +28,7 @@
             @endforeach
         </div>
     @endif
-    
+    <a href="{{ route('documents.view', $document) }}" target="_blank">View</a>
     @if($documents->count() > 0)
         <!-- Documents Table -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
