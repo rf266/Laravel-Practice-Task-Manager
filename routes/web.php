@@ -24,7 +24,7 @@ Route::middleware(['auth.custom', 'throttle:tasks'])->group(function() {
 
     
     //these are protected as they can only be accessed when logged in
-    Route::get('/tasks/export', [TaskController::class, 'export'])->middleware('throttle:downlods')->name('tasks.export');
+    Route::get('/tasks/export', [TaskController::class, 'export'])->middleware('throttle:downloads')->name('tasks.export');
     Route::resource('tasks', TaskController::class);
 
     Route::get('/profile/{user}',[UserProfileController::class, 'show'])->name('profile.show');

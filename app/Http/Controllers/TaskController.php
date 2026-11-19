@@ -33,12 +33,12 @@ class TaskController extends Controller
         $user_id = session('user_id');
         $filename = 'tasks-' .now()->format('Y-m-d') . '.csv';
 
-        return response()->stream_Download(function() use ($user_id) {
+        return response()->streamDownload(function() use ($user_id) {
             $out = fopen('php://output', 'w');
 
             fputcsv($out, ['ID', 'Title', 'Description', 'Created']);
 
-            Task::where('user_id', $userId)->chunkById(1, function ($tasks) use ($out) 
+            Task::where('user_id', $user_id)->chunkById(1, function ($tasks) use ($out) 
             {
                 foreach ($tasks as $task ) {
                     fputcsv($out, [

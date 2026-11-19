@@ -120,9 +120,9 @@ class DocumentUploadController extends Controller
 
     public function view(Document $document) {
         abort_if($document->user_id !== session('user_id'),403);
-        abort_unless(Storage::disk('local')->exists($document->path),404);
+        abort_unless(Storage::disk('local')->exists($document->file_path),404);
 
-        $type = Storage::disk('local')->mimeType($document->path);
+        $type = Storage::disk('local')->mimeType($document->file_path);
 
         abort_unless(in_array($type, ["application/pdf", 
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
@@ -130,6 +130,15 @@ class DocumentUploadController extends Controller
                 "application/csv", 
                 "text/plain"], true), 415);
 
-        return Storage::disk('local')->response($document->path, $document->original_name);
+        return response()->file(
+            Storage::disk('local')->path($document->file_path),
+            [
+                'Content-Type' => $type, 
+                'Content-Disposition' => 'inline; filename="'.$document->original_filename. '"',
+            ]
+        );
+
     }
+
+
 }

@@ -28,7 +28,6 @@
             @endforeach
         </div>
     @endif
-    <a href="{{ route('documents.view', $document) }}" target="_blank">View</a>
     @if($documents->count() > 0)
         <!-- Documents Table -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -46,6 +45,8 @@
                     @foreach($documents as $doc)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 text-sm text-gray-900">
+                                    <a href="{{ route('documents.view', $doc) }}" target="_blank">View</a>
+
                                 <div class="flex items-center">
                                     @if($doc->file_type === 'pdf')
                                         <span class="text-red-500 mr-2">📄</span>
