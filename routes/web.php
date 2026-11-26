@@ -6,7 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\AvatarUploadController;
 use App\Http\Controllers\DocumentUploadController;
-
+use App\Http\Controllers\TaskImportController;
 
 
 Route::get('/register', [AuthController::class, 'showRegister' ])->name('register');
@@ -42,6 +42,15 @@ Route::middleware(['auth.custom', 'throttle:tasks'])->group(function() {
     Route::delete('/documents/{document}', [DocumentUploadController::class, 'destroy'])->name('documents.destroy');
 
     Route::get('/documents/{document}/view', [DocumentUploadController::class, 'view'])->middleware('throttle:downloads')->name('documents.view');});
+
+    Route::get('/tasks/import', [TaskImportController::class, 'create'])->name('tasks.import.create');
+    Route::get('/tasks/import/template', [TaskImportController::class, 'template'])->name('tasks.import.template');
+    Route::post('/tasks/import',[TaskImportController:: class, 'store'])->name('task.import.store')->middleware('throttle:imports');
+
+    Route::resource('tasks', TaskController::class);
+
+
+
 
 Route::get('/email/verify/{token}', [AuthController::class, 'verifyEmail'])->name('email.verify');
 Route::post('/email/resend', [Authcontroller::class, 'resendVerificationEmail'])->name('email.resend');
