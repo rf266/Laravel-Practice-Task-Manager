@@ -29,8 +29,8 @@ class AppServiceProvider extends ServiceProvider
 
 
         RateLimiter::for('imports', function (Request $request) {
-            return Limit:perMinute(5)->by(session('user_id') ?: $request->ip());
-        })
+            return Limit::perMinute(5)->by(session('user_id') ?: $request->ip());
+        });
         
         RateLimiter::for('tasks-create', function (Request $request) {
             return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Events\TaskCreated;
 
 class TaskImportController extends Controller
 {
@@ -21,12 +22,12 @@ class TaskImportController extends Controller
 
     public function template() {
         return response()->streamDownload(function () {
-            $out = ('php://output', 'w');
+            $out = fopen('php://output', 'w');
             fputcsv($out, ['title', 'description']);
-            fputcsv(['Prepare monthly report', 'Collect numbers from the team']);
+            fputcsv($out, ['Prepare monthly report', 'Collect numbers from the team']);
             fclose($out);
-        }, 'tasks-import-template.csv', ['Content-Type' => 'text/csv']);
-        )
+         },'tasks-import-template.csv', ['Content-Type' => 'text/csv']);
+
     }
 
     public function store(Request $request) {
@@ -46,7 +47,7 @@ class TaskImportController extends Controller
 
         $delimiter = substr_count($first_line, ';') > substr_count($first_line, ',') ? ';' : ',';
 
-        $headers = array_map(fn, ($h) =>strtolower(trim($h)),str_getcsv($firstLine, $delimiter)));
+        $headers = array_map(fn ($h) =>strtolower(trim($h)),str_getcsv($first_line, $delimiter));
 
         if(!in_array('title', $headers,true)) {
             fclose($handle);
@@ -58,7 +59,7 @@ class TaskImportController extends Controller
         $line = 1;
         $dataRows = 0; 
         
-        DB::transaction(function () use $handle, $delimiter, $headers, $user_id, &$imported, &$errors, &$line, &$dataRows) {
+        DB::transaction(function () use ($handle, $delimiter, $headers, $user_id, &$imported, &$errors, &$line, &$dataRows) {
             while (($row = fgetcsv($handle, 0, $delimiter)) !==false) {
                 $line++;
 
@@ -81,14 +82,12 @@ class TaskImportController extends Controller
                         return $value;
                     }
 
-                    if(mb_check_encoding($value, 'UTF-8')) {
-                        $value = mb_convert_encoding($value,'UTF-8', 'windows-1252');
+                    if(!mb_check_encoding($value, 'UTF-8')) {
+                        $value = mb_convert_encoding($value,'UTF-8', 'Windows-1252');
 
                     }
-                        return (trim($value))
-                }, $data
-
-                );
+                        return (trim($value));
+                }, $data);
 
                 $validator = Validator::make($data, [ 'title' => 'required|string|max:255',
                     'description' => 'nullable|string|max:5000',
@@ -99,21 +98,22 @@ class TaskImportController extends Controller
                     continue;
                 }
 
-                Task::create(['user_id' => $userId,
+                $task = Task::create(['user_id' => $user_id,
                     'title' => $data['title'],
                     'description' => ($data['description'] ?? '') !== '' ? $data['description'] : null,
-                ])
+                ]);
                 TaskCreated::dispatch($task);
                 $imported++;
-
-                fclose($handle);
-
-
-                Cache::forget('user:'.$user_id. ':task-stats');
-
-                return redirect()->route('tasks.import.create')->with('success', 'Imported ' . $imported . ' task(s).')->with('import_errors', array_slice($errors, 0, 20));
             }
-        }
+                
+        });
+        fclose($handle);
+
+
+        Cache::forget('user:'.$user_id. ':task-stats');
+
+        return redirect()->route('tasks.import.create')->with('success', 'Imported ' . $imported . ' task(s).')->with('import_errors', array_slice($errors, 0, 20));
+            
 
 
     }

@@ -25,8 +25,13 @@ Route::middleware(['auth.custom', 'throttle:tasks'])->group(function() {
     
     //these are protected as they can only be accessed when logged in
     Route::get('/tasks/export', [TaskController::class, 'export'])->middleware('throttle:downloads')->name('tasks.export');
-    Route::resource('tasks', TaskController::class);
 
+        Route::get('/tasks/import', [TaskImportController::class, 'create'])->name('tasks.import.create');
+
+    Route::get('/tasks/import/template', [TaskImportController::class, 'template'])->name('tasks.import.template');
+    Route::post('/tasks/import',[TaskImportController:: class, 'store'])->name('tasks.import.store')->middleware('throttle:imports');
+
+    Route::resource('tasks', TaskController::class);
     Route::get('/profile/{user}',[UserProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/{user}/edit',[UserProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile/{user}',[UserProfileController::class, 'update'])->name('profile.update');
@@ -42,12 +47,6 @@ Route::middleware(['auth.custom', 'throttle:tasks'])->group(function() {
     Route::delete('/documents/{document}', [DocumentUploadController::class, 'destroy'])->name('documents.destroy');
 
     Route::get('/documents/{document}/view', [DocumentUploadController::class, 'view'])->middleware('throttle:downloads')->name('documents.view');});
-
-    Route::get('/tasks/import', [TaskImportController::class, 'create'])->name('tasks.import.create');
-    Route::get('/tasks/import/template', [TaskImportController::class, 'template'])->name('tasks.import.template');
-    Route::post('/tasks/import',[TaskImportController:: class, 'store'])->name('task.import.store')->middleware('throttle:imports');
-
-    Route::resource('tasks', TaskController::class);
 
 
 
